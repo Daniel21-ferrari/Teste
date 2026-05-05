@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daniel Ferrari Beletti Pereira</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1c1c28;
+      --border: #2a2a3e;
+      --accent: #7c6fff;
+      --accent2: #ff6b9d;
+      --accent3: #00e5c3;
+      --text: #e8e8f0;
+      --muted: #6b6b88;
+      --glow: rgba(124, 111, 255, 0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -100px; left: -150px; }
+    .blob-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -80px; right: -100px; }
+    .blob-3 { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 50%; transform: translateX(-50%); }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 2rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    .site-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .site-subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 0.35rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.3rem 0.9rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.active {
+      background: var(--accent3);
+      box-shadow: 0 0 8px var(--accent3);
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── CAMERA CARD ── */
+    .cam-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .cam-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--accent), transparent 60%, var(--accent2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .cam-header {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cam-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .cam-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    /* Webcam frame */
+    #webcam-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #webcam-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+
+    .cam-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+    }
+
+    .cam-placeholder i { font-size: 2.5rem; opacity: 0.4; }
+    .cam-placeholder span { font-size: 0.7rem; letter-spacing: 0.08em; }
+
+    /* Corner decorations */
+    .cam-corners {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: 16px;
+    }
+
+    .cam-corners::before, .cam-corners::after,
+    .cam-corners span::before, .cam-corners span::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-color: var(--accent);
+      border-style: solid;
+    }
+    .cam-corners::before  { top: 6px; left: 6px;   border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+    .cam-corners::after   { top: 6px; right: 6px;  border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+    .cam-corners span::before { bottom: 6px; left: 6px;  border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+    .cam-corners span::after  { bottom: 6px; right: 6px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+    /* ── START BUTTON ── */
+    .btn-start {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 2rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 0 20px var(--glow), 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .btn-start::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.15);
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 0 35px var(--glow), 0 8px 25px rgba(0,0,0,0.5); }
+    .btn-start:hover::before { opacity: 1; }
+    .btn-start:active { transform: translateY(0); }
+
+    .btn-start:disabled {
+      background: var(--surface2);
+      color: var(--muted);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-start .spinner-border {
+      width: 1rem; height: 1rem;
+      border-width: 2px;
+    }
+
+    /* ── RESULTS CARD ── */
+    .results-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .results-header {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .results-body {
+      padding: 1.4rem;
+    }
+
+    /* ── PREDICTION ITEMS ── */
+    .pred-item {
+      margin-bottom: 1.2rem;
+    }
+    .pred-item:last-child { margin-bottom: 0; }
+
+    .pred-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .pred-name {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .pred-pct {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--accent);
+      transition: color 0.3s;
+      min-width: 3.5ch;
+      text-align: right;
+    }
+
+    .pred-bar-track {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .pred-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      width: 0%;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    /* Color shifts based on value */
+    .pred-bar-fill.high {
+      background: linear-gradient(90deg, var(--accent3), #00b4d8);
+    }
+    .pred-bar-fill.medium {
+      background: linear-gradient(90deg, var(--accent), #a855f7);
+    }
+    .pred-bar-fill.low {
+      background: linear-gradient(90deg, var(--muted), var(--border));
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 0.5rem; }
+    .empty-state span { font-size: 0.75rem; letter-spacing: 0.08em; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 1.2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { color: var(--accent2); }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 768px) {
+      main { padding: 2.5rem 2rem; }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+
+      #webcam-container {
+        width: 260px;
+        height: 260px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      main { padding: 3rem; }
+      .content-grid { gap: 2rem; }
+      #webcam-container { width: 300px; height: 300px; }
+    }
+
+    /* Scan line animation on webcam when active */
+    #webcam-container.active::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+      animation: scan 2.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes scan {
+      0%   { top: 0; opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* Loading shimmer */
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .loading-text {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Ambient blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="container-fluid px-0 d-flex flex-wrap align-items-start justify-content-between gap-3">
+      <div>
+        <div class="site-title">Daniel Ferrari<br>Beletti Pereira</div>
+        <div class="site-subtitle">Teachable Machine · Classificação por Câmera</div>
+      </div>
+      <div>
+        <div class="status-badge">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Aguardando</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container-fluid px-0" style="max-width: 960px;">
+
+      <!-- TOP ROW: cam + results -->
+      <div class="content-grid mb-4">
+
+        <!-- Camera Card -->
+        <div class="cam-card">
+          <div class="cam-header">
+            <span class="cam-label"><i class="bi bi-camera-video me-1"></i>Câmera</span>
+            <span class="cam-label" id="fps-counter" style="display:none;">— fps</span>
+          </div>
+          <div class="cam-body">
+
+            <div id="webcam-container">
+              <!-- Placeholder -->
+              <div class="cam-placeholder" id="cam-placeholder">
+                <i class="bi bi-camera-video-off"></i>
+                <span>Câmera inativa</span>
+              </div>
+              <!-- Corner decoration (only visible when active) -->
+              <div class="cam-corners" id="cam-corners" style="display:none;"><span></span></div>
+            </div>
+
+            <!-- Button -->
+            <button class="btn-start" id="btn-init" onclick="init()">
+              <i class="bi bi-play-circle-fill" id="btn-icon"></i>
+              <span id="btn-text">Ativar Câmera</span>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="results-card">
+          <div class="results-header">
+            <span class="cam-label"><i class="bi bi-bar-chart-line me-1"></i>Classificação</span>
+            <span class="cam-label" id="top-class" style="color: var(--accent3);"></span>
+          </div>
+          <div class="results-body">
+            <!-- Empty state (before model loads) -->
+            <div class="empty-state" id="empty-state">
+              <i class="bi bi-cpu"></i>
+              <span>Inicie a câmera para<br>ver as predições</span>
+            </div>
+            <!-- Dynamic labels -->
+            <div id="label-container"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>Powered by <a href="https://teachablemachine.withgoogle.com" target="_blank">Teachable Machine</a> &amp; TensorFlow.js</span>
+  </footer>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<script>
+  const MODEL_URL = "https://teachablemachine.withgoogle.com/models/larJeyc3N//";
+
+  let model, webcam, labelContainer, maxPredictions;
+  let isRunning = false;
+  let frameCount = 0, lastFPS = Date.now();
+
+  async function init() {
+    const btn       = document.getElementById('btn-init');
+    const btnText   = document.getElementById('btn-text');
+    const btnIcon   = document.getElementById('btn-icon');
+    const statusDot = document.getElementById('status-dot');
+    const statusTxt = document.getElementById('status-text');
+
+    // Disable button + show spinner
+    btn.disabled = true;
+    btnIcon.className = '';
+    btnText.textContent = 'Carregando…';
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span><span>Carregando…</span>`;
+
+    statusTxt.textContent = 'Carregando modelo';
+
+    try {
+      const modelURL    = MODEL_URL + "model.json";
+      const metadataURL = MODEL_URL + "metadata.json";
+
+      model          = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      statusTxt.textContent = 'Acessando câmera';
+
+      const flip = true;
+      webcam = new tmImage.Webcam(300, 300, flip);
+      await webcam.setup();
+      await webcam.play();
+
+      // Show webcam canvas
+      const container = document.getElementById('webcam-container');
+      document.getElementById('cam-placeholder').style.display = 'none';
+      container.appendChild(webcam.canvas);
+      container.classList.add('active');
+      document.getElementById('cam-corners').style.display = 'block';
+
+      // Build label items
+      const lc = document.getElementById('label-container');
+      document.getElementById('empty-state').style.display = 'none';
+      lc.innerHTML = '';
+
+      for (let i = 0; i < maxPredictions; i++) {
+        const item = document.createElement('div');
+        item.className = 'pred-item';
+        item.innerHTML = `
+          <div class="pred-meta">
+            <span class="pred-name" id="name-${i}">Classe ${i+1}</span>
+            <span class="pred-pct" id="pct-${i}">0%</span>
+          </div>
+          <div class="pred-bar-track">
+            <div class="pred-bar-fill low" id="bar-${i}"></div>
+          </div>`;
+        lc.appendChild(item);
+      }
+
+      // Status: active
+      statusDot.classList.add('active');
+      statusTxt.textContent = 'Ativo';
+      document.getElementById('fps-counter').style.display = '';
+
+      // Update button to "running"
+      btn.disabled = true;
+      btn.innerHTML = `<i class="bi bi-camera-video-fill"></i><span>Câmera ativa</span>`;
+
+      isRunning = true;
+      window.requestAnimationFrame(loop);
+
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-exclamation-circle"></i><span>Tentar novamente</span>`;
+      statusTxt.textContent = 'Erro — tente novamente';
+    }
+  }
+
+  async function loop() {
+    if (!isRunning) return;
+    webcam.update();
+    await predict();
+
+    // FPS counter
+    frameCount++;
+    const now = Date.now();
+    if (now - lastFPS >= 1000) {
+      document.getElementById('fps-counter').textContent = frameCount + ' fps';
+      frameCount = 0;
+      lastFPS = now;
+    }
+
+    window.requestAnimationFrame(loop);
+  }
+
+  async function predict() {
+    const prediction = await model.predict(webcam.canvas);
+
+    let topClass = '';
+    let topProb  = 0;
+
+    for (let i = 0; i < maxPredictions; i++) {
+      const prob = prediction[i].probability;
+      const pct  = Math.round(prob * 100);
+      const name = prediction[i].className;
+
+      // Update label name (first time)
+      document.getElementById(`name-${i}`).textContent = name;
+      document.getElementById(`pct-${i}`).textContent  = pct + '%';
+
+      const bar = document.getElementById(`bar-${i}`);
+      bar.style.width = pct + '%';
+
+      // Color tier
+      bar.className = 'pred-bar-fill';
+      if (pct >= 70)      bar.classList.add('high');
+      else if (pct >= 35) bar.classList.add('medium');
+      else                bar.classList.add('low');
+
+      if (prob > topProb) { topProb = prob; topClass = name; }
+    }
+
+    const topEl = document.getElementById('top-class');
+    if (topProb > 0.5) {
+      topEl.textContent = '▲ ' + topClass;
+    } else {
+      topEl.textContent = '';
+    }
+  }
+</script>
+</body>
+</html>
